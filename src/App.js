@@ -1,14 +1,20 @@
 import React, { useEffect, useState }  from 'react';
 import './styles/App.css';
 import twitterLogo from './assets/twitter-logo.svg';
+import {ethers} from "ethers";
 
 // Constants
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
+const tld = '.alfa';
+const CONTRACT_ADDRESS = '0x124920B1f42AD4929A93058C91a66259305fAacf';
 
 const App = () => {
 
     const [currentAccount, setCurrentAccount] = useState("");
+    const [domain, setDomain] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [record, setRecord] = useState('');
 
     const renderNotConnectedContainer = () => (
 	<div className="connect-wallet-container">
@@ -18,6 +24,39 @@ const App = () => {
 	    </button>
 	</div>
     );
+
+    const renderInputForm = () => {
+	return (
+	    <div className="form-container">
+		<div className="first-row">
+		    <input
+			type="text"
+			value={domain}
+			placeholder='domain'
+			onChange={e => setDomain(e.target.value)}
+		    />
+		    <p className='tld'> {tld} </p>
+		</div>
+
+		<input
+		    type="text"
+		    value={record}
+		    placeholder='make your alfa statement'
+		    onChange={e => setRecord(e.target.value)}
+		/>
+
+		<div className="button-container">
+		    <button className='cta-button mint-button' disabled={null} onClick={null}>
+			Mint
+		    </button>  
+		    <button className='cta-button mint-button' disabled={null} onClick={null}>
+			Set data
+		    </button>  
+		</div>
+
+	    </div>	    
+	);
+    };
 
     const connectWallet = async () => {
 	try {
@@ -41,6 +80,7 @@ const App = () => {
 	const { ethereum } = window;
 	if (!ethereum) {
 	    console.log("Make sure you have metamask");
+	    return;
 	} else {
 	    console.log("We have the ethereum object");
 	}
@@ -50,6 +90,7 @@ const App = () => {
 	if (accounts.length > 0) {
 	    const account = accounts[0];
 	    console.log("Found authorized account:", account);
+	    setCurrentAccount(account);
 	} else {
 	    console.log("No authorized account found");
 	}
@@ -73,8 +114,9 @@ const App = () => {
 		    </header>
 		</div>
 
-		{/* Render method */}
+		{/* Render connect wallet or input form */}
 		{!currentAccount && renderNotConnectedContainer()}
+		{currentAccount && renderInputForm()}
 
 		<div className="footer-container">
 		    <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
@@ -88,6 +130,6 @@ const App = () => {
 	    </div>
 	</div>
     );
-}
+};
 
 export default App;
