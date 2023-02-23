@@ -2,12 +2,14 @@ import React, { useEffect, useState }  from 'react';
 import './styles/App.css';
 import twitterLogo from './assets/twitter-logo.svg';
 import {ethers} from "ethers";
+import contractABI from './utils/Domains.json';
 
 // Constants
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const tld = '.alfa';
 const CONTRACT_ADDRESS = '0x124920B1f42AD4929A93058C91a66259305fAacf';
+const POLYGONSCAN_URL = 'https://mumbai.polygonscan.com/tx/';
 
 const App = () => {
 
@@ -46,7 +48,7 @@ const App = () => {
 		/>
 
 		<div className="button-container">
-		    <button className='cta-button mint-button' disabled={null} onClick={null}>
+		    <button className='cta-button mint-button' disabled={null} onClick={mintDomain}>
 			Mint
 		    </button>  
 		    <button className='cta-button mint-button' disabled={null} onClick={null}>
@@ -56,6 +58,49 @@ const App = () => {
 
 	    </div>	    
 	);
+    };
+
+    const mintDomain = async () => {
+	// domain state variable should have a value
+	if (!domain) return;
+
+	const price = domain.length <= 3 ? '0.5' : domain.length === 4 ? '0.3' : '0.1';
+	console.log("minting domain", domain, "with price", price);
+
+	try {
+	    
+	    const { ethereum } = window;
+	    if (!ethereum) return; // do nothing if we don't have access to wallet
+
+	    const provider = new ethers.providers.Web3Provider(ethereum);
+	    const signer = provider.getSigner();
+	    const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI.abi, signer);
+	    
+	    let txn = await contract.register(domain, {value: ethers.utils.parseEther(price)});
+
+	    // wait for transaction be mined
+	    const receipt = await txn.wait();
+
+	    if (receipt.status === 1) {
+		console.log("Domain minted at", POLYGONSCAN_URL + txn.hash);
+
+		// set the record for the domain
+		txn = await contract.setRecord(domain, record);
+		await txn.wait();
+
+		console.log("Record set at", POLYGONSCAN_URL + txn.hash);
+
+		// reset component state  variables
+		setRecord('');
+		setDomain('');
+	    } else {
+		alert("Transaction failed! Try again");
+	    }
+	    
+	} catch (error) {
+	    console.log(error);
+	}
+	
     };
 
     const connectWallet = async () => {
