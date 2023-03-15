@@ -8,7 +8,7 @@ import contractABI from './utils/Domains.json';
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const tld = '.alfa';
-const CONTRACT_ADDRESS = '0x124920B1f42AD4929A93058C91a66259305fAacf';
+const CONTRACT_ADDRESS = '0xf61caB99C0AAc8A130af112127642c48c55e32AF';
 const POLYGONSCAN_URL = 'https://mumbai.polygonscan.com/tx/';
 
 const App = () => {
