@@ -3,6 +3,10 @@ import './styles/App.css';
 import twitterLogo from './assets/twitter-logo.svg';
 import {ethers} from "ethers";
 import contractABI from './utils/Domains.json';
+import polygonLogo from './assets/polygonlogo.png';
+import ethLogo from './assets/ethlogo.png';
+import { networks } from './utils/networks';
+
 
 // Constants
 const TWITTER_HANDLE = '_buildspace';
@@ -17,6 +21,7 @@ const App = () => {
     const [domain, setDomain] = useState('');
     const [loading, setLoading] = useState(false);
     const [record, setRecord] = useState('');
+    const [network, setNetwork] = useState('');
 
     const renderNotConnectedContainer = () => (
 	<div className="connect-wallet-container">
@@ -28,6 +33,14 @@ const App = () => {
     );
 
     const renderInputForm = () => {
+	if (network !== "Polygon Mumbai Testnet") {
+	    return (
+		<div className="connect-wallet-container">
+		    <p>Please connect to the Mumbai Network</p>
+		    <button className="cta-button mint-button" onClick={switchNetwork}>Click here to switch</button>
+		</div>
+	    );
+	}
 	return (
 	    <div className="form-container">
 		<div className="first-row">
@@ -60,6 +73,46 @@ const App = () => {
 	);
     };
 
+    const switchNetwork = async () => {
+	if (!window.ethereum) {
+	    alert("Please install metamask");
+	    return;
+	}
+
+	try {
+	    await window.ethereum.request({
+		method: "wallet_switchEthereumChain",
+		params: [{ chainId: '0x13881' }],
+	    });
+	} catch (error) {
+	    // In this case, the chain has not been added to metamask.
+	    // We ask the user to add it
+	    if (error.code === 4902) {
+		try {
+		    await window.ethereum.request({
+			method: 'wallet_addEthereumChain',
+			params: [
+			    {	
+				chainId: '0x13881',
+				chainName: 'Polygon Mumbai Testnet',
+				rpcUrls: ['https://rpc-mumbai.maticvigil.com/'],
+				nativeCurrency: {
+				    name: "Mumbai Matic",
+				    symbol: "MATIC",
+				    decimals: 18
+				},
+				blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
+			    },
+			],
+		    });
+		} catch (error) {
+		    console.log(error);
+		}
+	    } else {
+		console.log(error);
+	    }
+	}
+    };
     const mintDomain = async () => {
 	// domain state variable should have a value
 	if (!domain) return;
@@ -140,6 +193,16 @@ const App = () => {
 	    console.log("No authorized account found");
 	}
 
+	const chainId = await ethereum.request({ method: 'eth_chainId'});
+	setNetwork(networks[chainId]);
+
+	ethereum.on('chainChanged', handleChainChanged);
+
+	// Reload page when network is changed
+	function handleChainChanged(_chainId) {
+	    window.location.reload();
+	}
+
     };
 
     useEffect(() => {
@@ -155,6 +218,11 @@ const App = () => {
 			<div className="left">
 			    <p className="title">🐱‍👤 Alfa Name Service</p>
 			    <p className="subtitle">Your immortal API on the blockchain!</p>
+			</div>
+			{/* Display a logo and wallet connection status*/}
+			<div className="right">
+			    <img alt="Network logo" className="logo" src={ network.includes("Polygon") ? polygonLogo : ethLogo} />
+			    { currentAccount ? <p> Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)} </p> : <p> Not connected </p> }
 			</div>
 		    </header>
 		</div>
