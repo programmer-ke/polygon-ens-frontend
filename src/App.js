@@ -172,13 +172,13 @@ const App = () => {
 	    return;
 	}
 	setLoading(true);
-	console.log("Updating domain", domain, "with record", record);
+	
 	try {
 	    const { ethereum } = window;
 	    if (!ethereum) { return; }
-
+	    console.log("Updating domain", domain, "with record", record);
 	    const provider = new ethers.providers.Web3Provider(ethereum);
-	    const signer = new provider.getSigner();
+	    const signer = provider.getSigner();
 	    const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI.abi, signer);
 
 	    let txn = await contract.setRecord(domain, record);
